@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from redistimeseries.client import Client as RedisTimeSeries
+import redis
 import time
 import datetime
 import json
@@ -19,7 +19,7 @@ pre_shard_it = kinesis.get_shard_iterator(StreamName=stream_name, ShardId=shard_
 shard_it = pre_shard_it["ShardIterator"]
 
 # Redis setup
-redis = RedisTimeSeries(host='localhost', port=6379, db=1)
+client = redis.Redis(host='localhost', port=6379, db=1)
 key = 'fraud-ts'
 
 
@@ -33,9 +33,10 @@ while 1==1:
         merchant = data["merchant"]
         category = data["category"]
         fraud_score = float(data["is_fraud"])
-        redis.add(key,timestamp,fraud_score,retention_msecs=30000,labels={'merchant': merchant,'category': category})
+        client.ts().add(key,timestamp,fraud_score,retention_msecs=30000,duplicate_policy='last',labels={'merchant': merchant,'category': category})
 
-        print(timestamp)
+        print(data)
+        print("\n")
 
     shard_it = out["NextShardIterator"]
     time.sleep(1.0)

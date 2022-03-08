@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-
+import os
 import csv
 import time
 import sys
@@ -43,11 +43,12 @@ def read_data(start_line, num_lines):
         return lines_processed
 
 if __name__ == '__main__':
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    source_data = os.path.join(base_dir, "data/fraud_test_data_long.csv")
+    place_holder = os.path.join(base_dir, "data/last_line.txt")
     stream_name = "demo-stream"
-    source_data = "data/fraud_test_data_long.csv"
-    place_holder = "data/last_line.txt"
     kinesis_client = boto3.client('kinesis')
-    num_lines = 10
+    num_lines = 100
     start_line = 0
 
     if (len(sys.argv) > 1):
