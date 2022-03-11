@@ -26,3 +26,15 @@ Consumer_json.py reads the transaction from the Kinesis stream and sinks it to t
 
 ## `./utilities/consumer_ts.py`
 Consumer_ts.py reads the transaction from the Kinesis stream and sinks it to the RedisTimeSeries database. This TS database is mainly to be used for real-time dashboards/reports.
+
+## `./utilities/query_ts.py`
+Query_ts.py shown an example on how to consume data from RedisTimeSeries database. Please refer to the [documentation](https://redis-py.readthedocs.io/en/stable/redismodules.html#redistimeseries-commands) for all the commands and their parameters.
+```python
+get_mrange(
+    from_time = "-", # minimum possible timestamp
+    to_time = "+", # maximum possible timestamp
+    aggregation_type = "count", # optional aggregation type.
+    bucket_size_msec = 1000, # time bucket for aggregation in milliseconds
+    filters = ["category=home"] # filter to match the time-series labels.
+)
+```
