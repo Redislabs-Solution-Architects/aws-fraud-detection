@@ -22,11 +22,11 @@ while 1==1:
     out = kinesis.get_records(ShardIterator=shard_it, Limit=1)
     for record in out['Records']:
         data = json.loads(record['Data'])
-        url = f"https://guzhj6cxg8.execute-api.us-east-2.amazonaws.com/test/fraud?q={random.uniform(0, 1)}"
+        url = f"https://guzhj6cxg8.execute-api.us-east-2.amazonaws.com/test/fraud?q={random.uniform(0.77, 1)}"
         r = requests.post(url, json=data).json()
         print("Fraud ML Score: " + r["fraudScore"])
         print(data)
         print("\n")
 
     shard_it = out["NextShardIterator"]
-    time.sleep(1.0)
+    time.sleep(0.1)

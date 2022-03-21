@@ -39,4 +39,4 @@ while 1==1:
         print("\n")
 
     shard_it = out["NextShardIterator"]
-    time.sleep(1.0)
+    time.sleep(0.1)

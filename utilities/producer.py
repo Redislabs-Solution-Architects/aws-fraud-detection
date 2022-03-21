@@ -36,7 +36,7 @@ def read_data(start_line, num_lines):
                 print(row)
                 print("\n")
                 send_data(prep_data(row))
-                time.sleep(1.0) #add delay
+                time.sleep(0.1) #add delay
                 lines_processed += 1
                 if (lines_processed >= num_lines):
                     break
