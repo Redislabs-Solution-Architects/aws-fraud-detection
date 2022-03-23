@@ -7,6 +7,7 @@ import datetime
 import json
 import random
 import boto3
+import pandas
 
 def get_line_count():
     with open(source_data, encoding='latin-1') as f:
@@ -20,27 +21,24 @@ def send_data(data):
         Data=data,
         PartitionKey="partitionkey")
 
-def prep_data(data):
-    return json.dumps(data)
-
 def read_data(start_line, num_lines):
-    with open(source_data, 'r') as csvfile:
-        reader = csv.DictReader(csvfile)
-        header = "id,trans_date_trans_time,cc_num,merchant,category,amt,first,last,gender,street,city,state,zip,lat,long,city_pop,job,dob,trans_num,unix_time,merch_lat,merch_long,is_fraud"
-        next (reader) #skip header
-        input_row = 0
-        lines_processed = 0
-        for row in reader:
-            input_row += 1
-            if (input_row > start_line):
-                print(row)
-                print("\n")
-                send_data(prep_data(row))
-                time.sleep(0.1) #add delay
-                lines_processed += 1
-                if (lines_processed >= num_lines):
-                    break
-        return lines_processed
+    df = pandas.read_csv(source_data)
+    df.transpose().to_dict().values()
+    out = df.to_json(orient='records',lines=True)
+    records = out.splitlines()
+    input_row = 0
+    lines_processed = 0
+    for row in records:
+        input_row += 1
+        if (input_row > start_line):
+            print(row)
+            print("\n")
+            send_data(row)
+            time.sleep(0.1) #add delay
+            lines_processed += 1
+            if (lines_processed >= num_lines):
+                break
+    return lines_processed
 
 if __name__ == '__main__':
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
