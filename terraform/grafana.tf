@@ -21,9 +21,9 @@ resource "grafana_data_source" "redis-enterprise-cloud" {
   is_default = true
 }
 
-# Grab dasboard
+# Grab dashboard
 # Need to be sure and export by clicking on the share item - totally messed up
 
-resource "grafana_dashboard" "frauds_scoring" {
+resource "grafana_dashboard" "fraud_scoring" {
   config_json = file("grafana-dashboard.json")
 }
