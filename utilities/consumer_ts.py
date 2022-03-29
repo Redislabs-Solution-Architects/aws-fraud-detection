@@ -19,12 +19,13 @@ pre_shard_it = kinesis.get_shard_iterator(StreamName=stream_name, ShardId=shard_
 shard_it = pre_shard_it["ShardIterator"]
 
 # Redis setup
-client = redis.Redis(host='localhost', port=6379, db=1)
+client = redis.Redis(host='redis-14445.c18475.us-west-2-mz.ec2.cloud.rlrcp.com', port=14445, password="vD1kVicoMChtHzIQiLVXjI4iiFlRKgFK", db=0)
 key = 'fraud-ts'
 
 
 while 1==1:
     out = kinesis.get_records(ShardIterator=shard_it, Limit=1)
+    #print (out)
     for record in out['Records']:
         data = json.loads(record['Data'])
         trans_date_trans_time = data["trans_date_trans_time"]
@@ -32,10 +33,23 @@ while 1==1:
         timestamp = int(datetime.datetime.timestamp(date))
         merchant = data["merchant"]
         category = data["category"]
-        fraud_score = float(data["is_fraud"])
-        client.ts().add(key,timestamp,fraud_score,retention_msecs=30000,duplicate_policy='last',labels={'merchant': merchant,'category': category})
+        #fraud_score = float(data["is_fraud"])
+        fraud_score = round(random.uniform(0.1, 1.0), 10)
+        print ("**** fraud_score = %2.2f" % (fraud_score))
+            #client.ts().add(key,timestamp,fraud_score,retention_msecs=30000,duplicate_policy='last',labels={'merchant': merchant,'category': category})
+        #client.ts().add(key,timestamp,fraud_score,duplicate_policy='last',labels={'merchant': merchant,'category': category})
+        client.ts().add(key,timestamp,fraud_score,duplicate_policy='last')
 
-        print(data)
+        if (fraud_score >= 0.7 ):
+            client.ts().add("fraudulent_ts","*",fraud_score,duplicate_policy='last', labels={'type': "fraud_score"})
+            print("*** adding to fraudulent series with current timestamp")
+        else:
+            client.ts().add("non-fraudulent_ts","*",fraud_score,duplicate_policy='last', labels={'type': "fraud_score"})
+            print("*** adding to non-fraudulent series with current timestamp")
+
+        #client.ts().add(key,timestamp,fraud_score)
+
+        #print(data)
         print("\n")
 
     shard_it = out["NextShardIterator"]
