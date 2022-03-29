@@ -19,7 +19,7 @@ pre_shard_it = kinesis.get_shard_iterator(StreamName=stream_name, ShardId=shard_
 shard_it = pre_shard_it["ShardIterator"]
 
 # Redis setup
-client = redis.Redis(host='redis-14445.c18475.us-west-2-mz.ec2.cloud.rlrcp.com', port=14445, password="vD1kVicoMChtHzIQiLVXjI4iiFlRKgFK", db=0)
+client = redis.Redis(host='localhost', port=6379, db=0)
 key = 'fraud-ts'
 
 
@@ -34,11 +34,11 @@ while 1==1:
         merchant = data["merchant"]
         category = data["category"]
         #fraud_score = float(data["is_fraud"])
-        fraud_score = round(random.uniform(0.1, 1.0), 10)
+        fraud_score = round(random.uniform(0.1, 1.0), 2)
         print ("**** fraud_score = %2.2f" % (fraud_score))
             #client.ts().add(key,timestamp,fraud_score,retention_msecs=30000,duplicate_policy='last',labels={'merchant': merchant,'category': category})
         #client.ts().add(key,timestamp,fraud_score,duplicate_policy='last',labels={'merchant': merchant,'category': category})
-        client.ts().add(key,timestamp,fraud_score,duplicate_policy='last')
+        client.ts().add(key,"*",fraud_score,duplicate_policy='last')
 
         if (fraud_score >= 0.7 ):
             client.ts().add("fraudulent_ts","*",fraud_score,duplicate_policy='last', labels={'type': "fraud_score"})
