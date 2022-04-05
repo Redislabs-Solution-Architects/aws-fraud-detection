@@ -35,11 +35,10 @@ while 1==1:
         category = data["category"]
         #fraud_score = float(data["is_fraud"])
         fraud_score = round(random.uniform(0.1, 1.0), 2)
-        print ("**** fraud_score = %2.2f" % (fraud_score))
-            #client.ts().add(key,timestamp,fraud_score,retention_msecs=30000,duplicate_policy='last',labels={'merchant': merchant,'category': category})
+        print("%s - %s - %2.2f" % (trans_date_trans_time, merchant, fraud_score))
+        #client.ts().add(key,timestamp,fraud_score,retention_msecs=30000,duplicate_policy='last',labels={'merchant': merchant,'category': category})
         #client.ts().add(key,timestamp,fraud_score,duplicate_policy='last',labels={'merchant': merchant,'category': category})
         client.ts().add(key,"*",fraud_score,duplicate_policy='last')
-
         if (fraud_score >= 0.7 ):
             client.ts().add("fraudulent_ts","*",fraud_score,duplicate_policy='last', labels={'type': "fraud_score"})
             print("*** adding to fraudulent series with current timestamp")

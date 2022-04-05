@@ -26,6 +26,7 @@ while 1==1:
     for record in out['Records']:
         data = json.loads(record['Data'])
         trans_date_trans_time = data["trans_date_trans_time"]
+        # rule_score = fraud_rules_engine(data)
 
         # Construct a unique sort key for this line item
         key = "fraud:" + trans_date_trans_time

@@ -17,7 +17,7 @@ provider "grafana" {
 resource "grafana_data_source" "redis-enterprise-cloud" {
   type       = "redis-datasource"
   name       = "RedisEnterpriseCloud"
-  url        = "redis-14445.c18475.us-west-2-mz.ec2.cloud.rlrcp.com:14445"
+  url        = "localhost:6379"
   is_default = true
 }
 
