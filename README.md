@@ -1,6 +1,6 @@
 # AWS Fraud Detection
 
-This repo contains utility code for the [Redis Enterprise Fraud Detection Solution Brief.](https://www.google.com) <br>
+This repo contains utility code for the [Redis Enterprise Fraud Detection Solution Brief.](https://redis.com/docs/enhance-fraud-detection-systemswith-redis-and-aws/) <br>
 They are for demonstration purposes and not meant for production.  <br><br>
 Make sure that you have installed `redis-py 4.x` for both RedisJSON and RedisTimeSeries as `redistimeseries-py` is deprecated. <br>
 You can check the version with the `pip show redis` command.
