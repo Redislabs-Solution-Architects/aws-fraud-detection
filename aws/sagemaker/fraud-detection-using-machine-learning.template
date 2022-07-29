@@ -1,0 +1,381 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "fraud-detection-demo: Solution for predicting fraud events with ML using Amazon SageMaker. Version 2",
+  "Parameters": {
+    "S3BucketName1": {
+      "Type": "String",
+      "Description": "New bucket for storing the Amazon SageMaker model and training data."
+    },
+    "S3BucketName2": {
+      "Type": "String",
+      "Description": "New bucket for storing processed events for visualization features."
+    }
+  },
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [{
+          "Label": {
+            "default": "Amazon S3 Bucket Configuration"
+          },
+          "Parameters": ["S3BucketName1", "S3BucketName2"]
+        }
+      ],
+      "ParameterLabels": {
+        "S3BucketName1": {
+          "default": "Model and Data Bucket Name"
+        },
+        "S3BucketName2": {
+          "default": "Results Bucket Name"
+        }
+      }
+    }
+  },
+  "Mappings": {
+    "Function": {
+      "FraudDetection": {
+        "S3Bucket": "solutions",
+        "S3Key": "fraud-detection-using-machine-learning/v2.0.0/fraud_detection.zip"
+      }
+    },
+    "Notebook": {
+      "FraudDetection": {
+        "S3Bucket": "solutions",
+        "S3Key": "/fraud-detection-using-machine-learning/v2.0.0/notebooks/sagemaker_fraud_detection.ipynb"
+      }
+    },
+    "Script": {
+      "Install": {
+        "S3Bucket": "solutions",
+        "S3Key": "/fraud-detection-using-machine-learning/v2.0.0/notebooks/on-start.sh"
+      },
+      "GenerateTraffic": {
+        "S3Bucket": "solutions",
+        "S3Key": "/fraud-detection-using-machine-learning/v2.0.0/notebooks/generate_endpoint_traffic.py"
+      }
+    }
+  },
+  "Resources": {
+    "S3Bucket1": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": {
+          "Ref": "S3BucketName1"
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        },
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [{
+            "ServerSideEncryptionByDefault": {
+              "SSEAlgorithm": "AES256"
+            }
+          }]
+        }
+      },
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [{
+            "id": "W35",
+            "reason": "Configuring logging requires supplying an existing customer S3 bucket to store logs"
+          },
+          {
+            "id": "W51",
+            "reason": "Default policy works fine"
+          }]
+        }
+      }
+    },
+    "S3Bucket2": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": {
+          "Ref": "S3BucketName2"
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        },
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [{
+            "ServerSideEncryptionByDefault": {
+              "SSEAlgorithm": "AES256"
+            }
+          }]
+        }
+      },
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [{
+            "id": "W35",
+            "reason": "Configuring logging requires supplying an existing customer S3 bucket to store logs"
+          },
+          {
+            "id": "W51",
+            "reason": "Default policy works fine"
+          }]
+        }
+      }
+    },
+    "BasicNotebookInstance": {
+      "Type": "AWS::SageMaker::NotebookInstance",
+      "Properties": {
+        "InstanceType": "ml.t2.medium",
+        "NotebookInstanceName": "FraudDetectionNotebookInstance",
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "NotebookInstanceExecutionRole",
+            "Arn"
+          ]
+        },
+        "LifecycleConfigName": {
+          "Fn::GetAtt": [
+            "BasicNotebookInstanceLifecycleConfig",
+            "NotebookInstanceLifecycleConfigName"
+          ]
+        }
+      }
+    },
+    "BasicNotebookInstanceLifecycleConfig": {
+      "Type": "AWS::SageMaker::NotebookInstanceLifecycleConfig",
+      "DependsOn": [
+        "S3Bucket1"
+      ],
+      "Properties": {
+        "OnStart": [{
+          "Content": {
+            "Fn::Base64": {
+              "Fn::Join": [";", ["cd /home/ec2-user/SageMaker",
+                {
+                  "Fn::Join": ["", ["aws s3 cp s3://", {
+                    "Fn::Join": ["-", [{
+                      "Fn::FindInMap": ["Notebook", "FraudDetection", "S3Bucket"]
+                    }, {
+                      "Ref": "AWS::Region"
+                    }]]
+                  }, {
+                    "Fn::FindInMap": ["Notebook", "FraudDetection", "S3Key"]
+                  }, " ."]]
+                },
+                {
+                  "Fn::Join": ["", ["sed -i 's/fraud-detection-end-to-end-demo/", {
+                    "Ref": "S3BucketName1"
+                  }, "/g' sagemaker_fraud_detection.ipynb"]]
+                },
+                {
+                  "Fn::Join": ["", ["aws s3 cp s3://", {
+                    "Fn::Join": ["-", [{
+                      "Fn::FindInMap": ["Script", "GenerateTraffic", "S3Bucket"]
+                    }, {
+                      "Ref": "AWS::Region"
+                    }]]
+                  }, {
+                    "Fn::FindInMap": ["Script", "GenerateTraffic", "S3Key"]
+                  }, " ."]]
+                },
+                {
+                  "Fn::Join": ["", ["aws s3 cp s3://", {
+                    "Fn::Join": ["-", [{
+                      "Fn::FindInMap": ["Script", "Install", "S3Bucket"]
+                    }, {
+                      "Ref": "AWS::Region"
+                    }]]
+                  }, {
+                    "Fn::FindInMap": ["Script", "Install", "S3Key"]
+                  }, " ."]]
+                },
+                "bash ./on-start.sh"
+              ]]
+            }
+          }
+        }]
+      }
+    },
+    "NotebookInstanceExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [{
+            "Effect": "Allow",
+            "Principal": {
+              "Service": [
+                "sagemaker.amazonaws.com"
+              ]
+            },
+            "Action": [
+              "sts:AssumeRole"
+            ]
+          }]
+        }
+      }
+    },
+    "NotebookInstanceIAMPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "sm-notebook-instance-policy",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [{
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetBucketLocation",
+                "s3:ListBucket",
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:DeleteObject"
+              ],
+              "Resource": [{
+                  "Fn::Join": ["", ["arn:aws:s3:::", {
+                    "Ref": "S3BucketName1"
+                  }]]
+                },
+                {
+                  "Fn::Join": ["", ["arn:aws:s3:::", {
+                    "Ref": "S3BucketName1"
+                  }, "/*"]]
+                },
+                {
+                  "Fn::Join": ["", ["arn:aws:s3:::", {
+                    "Fn::Join": ["-", [{
+                      "Fn::FindInMap": ["Notebook", "FraudDetection", "S3Bucket"]
+                    }, {
+                      "Ref": "AWS::Region"
+                    }]]
+                  }, "/*"]]
+                }
+              ]
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "sagemaker:CreateTrainingJob",
+                "sagemaker:DescribeTrainingJob",
+                "sagemaker:CreateModel",
+                "sagemaker:DescribeModel",
+                "sagemaker:DeleteModel",
+                "sagemaker:CreateEndpoint",
+                "sagemaker:CreateEndpointConfig",
+                "sagemaker:DescribeEndpoint",
+                "sagemaker:DescribeEndpointConfig",
+                "sagemaker:DeleteEndpoint",
+                "sagemaker:DeleteEndpointConfig",
+                "sagemaker:InvokeEndpoint"
+              ],
+              "Resource": [{
+                "Fn::Join": ["", ["arn:aws:sagemaker:", {
+                  "Ref": "AWS::Region"
+                }, ":", {
+                  "Ref": "AWS::AccountId"
+                }, ":*"]]
+              }]
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage",
+                "ecr:BatchCheckLayerAvailability"
+              ],
+              "Resource": [{
+                "Fn::Join": ["", ["arn:aws:ecr:", {
+                  "Ref": "AWS::Region"
+                }, ":", {
+                  "Ref": "AWS::AccountId"
+                }, ":repository/*"]]
+              }]
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "ec2:CreateVpcEndpoint",
+                "ec2:DescribeRouteTables"
+              ],
+              "Resource": "*"
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "cloudwatch:PutMetricData",
+                "cloudwatch:GetMetricData",
+                "cloudwatch:GetMetricStatistics",
+                "cloudwatch:ListMetrics"
+              ],
+              "Resource": [{
+                "Fn::Join": ["", ["arn:aws:cloudwatch:", {
+                  "Ref": "AWS::Region"
+                }, ":", {
+                  "Ref": "AWS::AccountId"
+                }, ":*"]]
+              }]
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:DescribeLogStreams",
+                "logs:GetLogEvents",
+                "logs:PutLogEvents"
+              ],
+              "Resource": {
+                "Fn::Join": ["", ["arn:aws:logs:", {
+                  "Ref": "AWS::Region"
+                }, ":", {
+                  "Ref": "AWS::AccountId"
+                }, ":log-group:/aws/sagemaker/*"]]
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "iam:PassRole"
+              ],
+              "Resource": [{
+                  "Fn::GetAtt": ["NotebookInstanceExecutionRole", "Arn"]
+                }
+
+              ],
+              "Condition": {
+                "StringEquals": {
+                  "iam:PassedToService": "sagemaker.amazonaws.com"
+                }
+              }
+            },
+            {
+              "Effect": "Allow",
+              "Action": [
+                "iam:GetRole"
+              ],
+              "Resource": [{
+                "Fn::GetAtt": ["NotebookInstanceExecutionRole", "Arn"]
+              }]
+            }
+          ]
+        },
+        "Roles": [{
+          "Ref": "NotebookInstanceExecutionRole"
+        }]
+      },
+      "Metadata": {
+        "cfn_nag": {
+          "rules_to_suppress": [{
+            "id": "W12",
+            "reason": "This policy needs to have * resource because some of the resources are created dynamically and some of its actions are * resource actions"
+          }]
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "BasicNotebookInstanceId": {
+      "Value": {
+        "Ref": "BasicNotebookInstance"
+      }
+    }
+  }
+}
