@@ -7,7 +7,10 @@ They are for demonstration purposes and not meant for production.
 The solution architecture can be found [here](https://d1.awsstatic.com/architecture-diagrams/ArchitectureDiagrams/aws_redis_realtime_fraud_detection_ra.pdf?did=wp_card&trk=wp_card).
 
 ## Product Demo
-![[2022-07-26-FraudDetectionOnAWSE.mp4]]
+
+https://user-images.githubusercontent.com/6223831/181816977-30684a43-7f0e-47df-9b85-faca8c19387b.mp4
+
+You can also find this demo video in `docs\media` folder.
 
 ## Pre-requisites
 Prior to running this application, please ensure following pre-requisites are installed and configured.
@@ -28,7 +31,9 @@ You will find a CloudFormation template in this  folder, at this path : `aws\sag
 1. Create a stack. Give it a name.
 2. Simply upload the template file : `aws\sagemaker\fraud-detection-using-machine-learning.template`
 3. The stack will ask you to configure S3 bucket names for your Model Data and for Results.
-![[Pasted image 20220728185304.png]]
+
+<img width="751" alt="Pasted image 20220728185304" src="https://user-images.githubusercontent.com/6223831/181816831-c4f6717e-2cd2-4113-88b8-cc6892b38c37.png">
+
 4. Proceed creating the stack. 
 
 Once the CloudFormation stack completes its run, following cloud resources will be created :
@@ -63,7 +68,8 @@ REDIS_PWD=t4Ye29t1ZpPCfoVh340s3uRGHEd8Gvmhc
 2. Use the `Dockerfile` provided in the folder `aws\lambda`
 3. Upload the docker image to Amazon ECR Repository by following the instructions given [here](https://docs.aws.amazon.com/lambda/latest/dg/images-create.html#images-upload).
 4. Create the lambda function using the `Container image` option, give it a name and point it to the container image you have created in the above step
-![[aws-lambda-function-creation.png]]
+
+<img width="758" alt="aws-lambda-function-creation" src="https://user-images.githubusercontent.com/6223831/181816709-05107aaa-e69f-4bc8-9cc8-6ad7fc8f3966.png">
 
 Make sure that the above lambda function has a IAM Role with `AmazonElasticContainerRegistryPublicFullAccess` previleges
 
@@ -71,10 +77,12 @@ Make sure that the above lambda function has a IAM Role with `AmazonElasticConta
 We will setup Amazon Kinesis Datastream to capture end-user credit card transactions. 
 Give it a name called `demo-stream`.  Setup the batch size as 1 instead of 100, just to simulate kinesis reading one transaction at a time.
 
-![[Pasted image 20220728194132.png]]
+<img width="456" alt="Pasted image 20220728194132" src="https://user-images.githubusercontent.com/6223831/181816580-2356698d-117d-4bba-b017-5a3a07596ac4.png">
 
 Now goahead and setup this Kinesis datastream `demo-stream` as a trigger to the lambda function created above.
-![[aws-lambda-kinesis-trigger.png]]
+
+<img width="492" alt="aws-lambda-kinesis-trigger" src="https://user-images.githubusercontent.com/6223831/181816499-993fe03b-ce00-4b08-a29c-fcbca36dbb21.png">
+
 
 ## Run the demo
 
@@ -116,8 +124,7 @@ docker-compose up
 
 Next, edit the `terraform\grafana.tf` to reflect Redis Enterprise Cloud endpoint ( Hostname: Port). Search for `grafana_data_source` section and update the Redis endpoint.
 
-![[Screen Shot 2022-07-28 at 7.55.21 PM.png]]
-
+<img width="504" alt="Screen Shot 2022-07-28 at 7 55 21 PM" src="https://user-images.githubusercontent.com/6223831/181816208-21686988-1f77-4315-8442-62ee7bdd95e6.png">
 
 Using terraform, install Redis data source plugin in the Grafana docker container and also setup Grafana dashboards.
 
