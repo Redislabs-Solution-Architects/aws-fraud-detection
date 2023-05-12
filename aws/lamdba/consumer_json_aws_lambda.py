@@ -85,7 +85,14 @@ def makeInferences(data_payload):
 def persistMLScores(output):
     print("** persistMLScores - START")
     print(output)
-
+    
+    # The output dictionary will have the ML scores from anomaly_detector and from fraud_classifier.
+    # Here a customer can make a decision on how much weightage can be given between anomaly_detector
+    # and fraud_classifier scores, to arrive at the final fraud_score.
+    # However, in this case, just to make it interesting to plot, we are deliberately choosing a random
+    # number between 0.1 to 10 and assigning it to the fraud_score. In reality, the customer will calculate
+    # a weighted average of the scores from anomaly_detector and fraud_classifier scores.
+    
     fraud_score = round(random.uniform(0.1, 1.0), 10)
     print ("**** fraud_score = %2.2f" % (fraud_score))
 
