@@ -91,6 +91,18 @@ Go ahead and enable a Python virtual environment.
 ```
 python3 -m venv aws-fraud-detection-demo.venv
 source aws-fraud-detection-demo.venv/bin/activate
+```
+Upgrade pip
+```
+pip install --upgrade pip
+```
+If you are on Centos 7.X, use `requirements-centos7.txt` for installing python dependencies.
+```
+pip install -r requirements-centos7.txt
+```
+
+If you are on Mac or Windows, simply use `requirements.txt`
+```
 pip install -r requirements.txt
 ```
 
