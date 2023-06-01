@@ -25,21 +25,42 @@ print(config.sections())
 REDIS_HOST = "localhost"
 REDIS_PORT = "6379"
 REDIS_PWD = ""
-if ("REDIS" in config):
-    print ("redis configs exist")
-    REDIS_HOST = config['REDIS']['REDIS_HOST']
-    REDIS_PORT = config['REDIS']['REDIS_PORT']
-    REDIS_PWD = config['REDIS']['REDIS_PWD']
-    print(REDIS_HOST)
-    print(REDIS_PORT)
-    print(REDIS_PWD)
+
+# Read the value of an environment variable named "MY_ENV_VARIABLE"
+my_env_variable_REDIS_HOST = os.environ.get('REDIS_HOST')
+my_env_variable_REDIS_PORT = os.environ.get('REDIS_PORT')
+my_env_variable_REDIS_PWD = os.environ.get('REDIS_PWD')
+
+# Print the values
+print('The value of my_env_variable_REDIS_HOST is:', my_env_variable_REDIS_HOST)
+print('The value of my_env_variable_REDIS_PORT is:', my_env_variable_REDIS_PORT)
+print('The value of my_env_variable_REDIS_PWD is:', my_env_variable_REDIS_PWD)
+
+if not my_env_variable_REDIS_HOST or not my_env_variable_REDIS_PORT or not my_env_variable_REDIS_PWD :
+    config = configparser.ConfigParser()
+    config.read("lambda_configs.properties")
+    print(config.sections())
+    if ("REDIS" in config):
+        print ("redis configs exist")
+        REDIS_HOST = config['REDIS']['REDIS_HOST']
+        REDIS_PORT = config['REDIS']['REDIS_PORT']
+        REDIS_PWD = config['REDIS']['REDIS_PWD']
+else:
+    REDIS_HOST = my_env_variable_REDIS_HOST
+    REDIS_PORT = my_env_variable_REDIS_PORT
+    REDIS_PWD = my_env_variable_REDIS_PWD
+
+
+print(REDIS_HOST)
+print(REDIS_PORT)
+print(REDIS_PWD)
 
 redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PWD, db=0)
-
+print (redis_client)
 
 def lambda_handler(event, context):
     print("***** 3 Redis Demo : Fraud Detection : Lambda Function - START ********")
-    redis_client = redis.Redis(host='redis-15381.c20502.us-east-1-mz.ec2.cloud.rlrcp.com', port=15381, password="t4Ye29t1ZpPCfoVhIV73uRGHEd8Gvmhc", db=0)
+    #redis_client = redis.Redis(host='redis-15381.c20502.us-east-1-mz.ec2.cloud.rlrcp.com', port=15381, password="t4Ye29t1ZpPCfoVhIV73uRGHEd8Gvmhc", db=0)
     print (redis_client)
     for record in event['Records']:
         print ("**Found data in Kinesis Datastream. Processing - START")
@@ -92,7 +113,6 @@ def persistMLScores(output):
     # However, in this case, just to make it interesting to plot, we are deliberately choosing a random
     # number between 0.1 to 10 and assigning it to the fraud_score. In reality, the customer will calculate
     # a weighted average of the scores from anomaly_detector and fraud_classifier scores.
-    
     fraud_score = round(random.uniform(0.1, 1.0), 10)
     print ("**** fraud_score = %2.2f" % (fraud_score))
 
